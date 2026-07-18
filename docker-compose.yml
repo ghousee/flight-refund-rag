@@ -1,0 +1,47 @@
+# Local infrastructure for flight-refund-rag.
+#
+#   docker compose up -d          # start postgres + ollama
+#   docker compose exec ollama ollama pull llama3.2:3b   # one-time model download (~2GB)
+#   docker compose down           # stop (data persists in named volumes)
+#   docker compose down -v        # stop and WIPE all data + model weights
+#
+# No secrets here — the postgres credentials are throwaway local dev values
+# that match .env.example. Nothing in this file needs an account or API key.
+
+services:
+  postgres:
+    image: pgvector/pgvector:pg16   # stock Postgres 16 + the pgvector extension prebuilt
+    container_name: frr-postgres
+    environment:
+      POSTGRES_USER: rag
+      POSTGRES_PASSWORD: rag
+      POSTGRES_DB: flight_refund
+    ports:
+      - "5432:5432"
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U rag -d flight_refund"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+    restart: unless-stopped
+
+  ollama:
+    image: ollama/ollama:latest
+    container_name: frr-ollama
+    ports:
+      - "11434:11434"
+    volumes:
+      - ollama:/root/.ollama          # persists downloaded model weights across restarts
+    healthcheck:
+      # ollama has no curl/wget inside the image; use its own CLI as a liveness probe
+      test: ["CMD", "ollama", "list"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+    restart: unless-stopped
+
+volumes:
+  pgdata:
+  ollama:
