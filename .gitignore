@@ -15,6 +15,10 @@ env/
 .env
 .env.local
 
+# ---- AI assistant context (kept local, not published) ----
+CLAUDE.md
+.claude/settings.local.json
+
 # ---- Corpus source files (reproduced via src/ingest/fetch_data.py) ----
 # We do NOT commit the airline/government PDFs. The fetch script downloads
 # them from official URLs so anyone can rebuild data/raw/ locally.
@@ -35,6 +39,12 @@ models/
 .idea/
 .DS_Store
 Thumbs.db
+
+# ---- Airline-authored content is NEVER committed (legal/content rule) ----
+# vault/airlines/ notes are generated locally by parse_pdfs.py from the airline
+# PDFs in data/raw/. Only government-sourced notes (APPR, eCFR), templates, and
+# code are committed. See CLAUDE.md > Legal / content rules.
+vault/airlines/
 
 # ---- Obsidian (keep notes + frontmatter, ignore per-machine workspace state) ----
 vault/.obsidian/workspace*
