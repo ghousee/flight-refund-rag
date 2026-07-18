@@ -19,9 +19,24 @@ VAULT_DIR = ROOT / "vault"
 
 # --- Vector store (pgvector) ---
 # psycopg3 SQLAlchemy URL. Defaults match docker-compose.yml + .env.example.
-DATABASE_URL = os.getenv(
-    "DATABASE_URL", "postgresql+psycopg://rag:rag@localhost:5432/flight_refund"
-)
+_DEFAULT_DB = "postgresql+psycopg://rag:rag@localhost:5432/flight_refund"
+
+
+def _normalize_db_url(url: str) -> str:
+    """Force the psycopg3 driver so raw Neon/Postgres URLs work as-is.
+
+    Hosted providers (e.g. Neon) hand out ``postgresql://...`` URLs, but
+    langchain-postgres uses SQLAlchemy + psycopg3, which needs the explicit
+    ``postgresql+psycopg://`` scheme (otherwise SQLAlchemy tries psycopg2).
+    """
+    if url.startswith("postgresql://"):
+        return "postgresql+psycopg://" + url[len("postgresql://"):]
+    if url.startswith("postgres://"):  # some providers use the short form
+        return "postgresql+psycopg://" + url[len("postgres://"):]
+    return url
+
+
+DATABASE_URL = _normalize_db_url(os.getenv("DATABASE_URL", _DEFAULT_DB))
 COLLECTION_NAME = os.getenv("COLLECTION_NAME", "flight_refund")
 
 # --- Embeddings (local sentence-transformers) ---
