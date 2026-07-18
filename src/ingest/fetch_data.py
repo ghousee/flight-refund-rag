@@ -170,6 +170,12 @@ def fetch(force: bool = False) -> None:
     session = requests.Session()
     session.headers.update({"User-Agent": USER_AGENT})
 
+    # Preserve retrieved_date for files we skip — the date must reflect when
+    # the file was actually downloaded, not when the script last ran.
+    previous: dict[str, dict] = {}
+    if MANIFEST_PATH.exists():
+        previous = json.loads(MANIFEST_PATH.read_text(encoding="utf-8"))
+
     manifest: dict[str, dict] = {}
     today = date.today().isoformat()
 
@@ -177,14 +183,16 @@ def fetch(force: bool = False) -> None:
         dest = RAW_DIR / src.filename
         if dest.exists() and not force:
             print(f"  skip   {src.filename} (already present)")
+            retrieved = previous.get(src.filename, {}).get("retrieved_date", today)
         else:
             print(f"  get    {src.filename}  <-  {src.url}")
             dest = _download(src, session)
             print(f"         {dest.stat().st_size / 1_048_576:.1f} MB")
+            retrieved = today
 
         manifest[src.filename] = {
             **{k: v for k, v in asdict(src).items() if k != "filename"},
-            "retrieved_date": today,
+            "retrieved_date": retrieved,
             "sha256": _sha256(dest),
             "size_bytes": dest.stat().st_size,
         }
