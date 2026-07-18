@@ -39,3 +39,6 @@ Suitable disembarkation point means a location at an airport where passengers ca
 Tarmac delay means the period of time when an aircraft is on the ground with passengers and the passengers have no opportunity to deplane.
 
 _[Doc. No. DOT-OST-2010-0140, 76 FR 23164, Apr. 25, 2011, as amended by Docket No. DOT-OST-2019-0144, 86 FR 23270, May 3, 2021; DOT-OST-2016-0208, 89 FR 32832, Apr. 26, 2024; DOT-OST-2022-0089, 89 FR 65536, Aug. 12, 2024]_
+
+---
+> Reproduced from the U.S. eCFR (https://www.ecfr.gov/api/versioner/v1/full/2026-07-01/title-14.xml?part=259) as retrieved 2026-07-17. U.S. Government work — public domain.

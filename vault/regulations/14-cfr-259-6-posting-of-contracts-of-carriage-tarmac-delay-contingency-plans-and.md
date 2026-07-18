@@ -18,3 +18,6 @@ topic: Posting of Contracts of Carriage, Tarmac Delay Contingency Plans and Cust
 (c) Each U.S. air carrier that has a website and each foreign air carrier that has a website marketed to U.S. consumers shall post its current contract of carriage on its website in easily accessible form.
 
 _[Doc. No. DOT-OST-2010-0140, 76 FR 23165, Apr. 25, 2011]_
+
+---
+> Reproduced from the U.S. eCFR (https://www.ecfr.gov/api/versioner/v1/full/2026-07-01/title-14.xml?part=259) as retrieved 2026-07-17. U.S. Government work — public domain.

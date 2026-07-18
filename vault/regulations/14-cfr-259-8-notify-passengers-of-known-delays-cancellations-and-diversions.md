@@ -21,3 +21,6 @@ topic: Notify passengers of known delays, cancellations, and diversions
 (c) If an airport-controlled display system at a U.S. airport accepts flight status updates from carriers, covered carriers must provide flight irregularity information to that airport for the carrier's scheduled flights to, from or within the U.S. within 30 minutes after the carrier becomes aware of such a change in the status of a flight. Flight irregularity refers to flight cancellations, flight delays of 30 minutes or more, and diversions.
 
 _[Doc. No. DOT-OST-2010-0140, 76 FR 23166, Apr. 25, 2011; Docket No. DOT-OST-2014-0056, 81 FR 76829, Nov. 3, 2016]_
+
+---
+> Reproduced from the U.S. eCFR (https://www.ecfr.gov/api/versioner/v1/full/2026-07-01/title-14.xml?part=259) as retrieved 2026-07-17. U.S. Government work — public domain.

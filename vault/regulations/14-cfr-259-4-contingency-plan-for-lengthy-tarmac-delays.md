@@ -81,3 +81,6 @@ Email address and phone number:
 (h) Unfair and deceptive practice. A carrier's failure to comply with the assurances required by this part and contained in its Contingency Plan for Lengthy Tarmac Delays will be considered to be an unfair and deceptive practice within the meaning of 49 U.S.C. 41712 that is subject to enforcement action by the Department.
 
 _[Docket No. DOT-OST-2019-0144, 86 FR 23270, May 3, 2021]_
+
+---
+> Reproduced from the U.S. eCFR (https://www.ecfr.gov/api/versioner/v1/full/2026-07-01/title-14.xml?part=259) as retrieved 2026-07-17. U.S. Government work — public domain.

@@ -35,3 +35,6 @@ A covered carrier that is the merchant of record or, if a ticket agent is the me
 (3) A passenger's voluntary agreement to travel without the checked bag on the same flight as described in paragraph (g) of this section.
 
 (g) Voluntary separation from bag. A carrier may require a passenger who fails to meet the minimum check-in time requirement for a flight or is a standby passenger for a flight (i.e., a passenger who lacks a reservation on that flight and is waiting at the gate for a seat to be available on the flight) to agree to a new baggage delivery date and location in situations where the carrier is unable to place the passenger's checked bag on that flight because of the limited time available. The carrier must not require the passenger to waive the right to a refund of bag fees if the bag is lost, the right to compensation for damaged, lost, or pilfered bags, or the right to incidental expenses reimbursement arising from delayed bags beyond the agreed upon delivery date, consistent with the Department's regulation in 14 CFR part 254 and applicable international treaties.
+
+---
+> Reproduced from the U.S. eCFR (https://www.ecfr.gov/api/versioner/v1/full/2026-07-01/title-14.xml?part=260) as retrieved 2026-07-17. U.S. Government work — public domain.

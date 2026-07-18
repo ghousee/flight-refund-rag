@@ -11,3 +11,6 @@ topic: Purpose
 # § 259.1 Purpose.
 
 The purpose of this part is to mitigate hardships for airline passengers during lengthy tarmac delays and otherwise to bolster air carriers' accountability to consumers.
+
+---
+> Reproduced from the U.S. eCFR (https://www.ecfr.gov/api/versioner/v1/full/2026-07-01/title-14.xml?part=259) as retrieved 2026-07-17. U.S. Government work — public domain.

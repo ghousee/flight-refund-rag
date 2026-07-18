@@ -61,3 +61,6 @@ Significantly delayed or changed flight means a covered flight itinerary with a 
 Significantly delayed checked bag means a checked bag not delivered to or picked up by the consumer or another person authorized to act on behalf of the consumer within 12 hours of the last flight segment's arrival for domestic itineraries, within 15 hours of the last flight segment's arrival for international itineraries with a non-stop flight segment between the United States and a foreign point that is 12 hours or less in duration, and within 30 hours of the last flight segment's arrival for international itineraries with a non-stop flight segment between the United States and a foreign point that is more than 12 hours in duration. The 15-hour and 30-hour standards apply to domestic segments of international itineraries.
 
 _[DOT-OST-2022-0089 and DOT-OST-2016-0208, 89 FR 32832, Apr. 26, 2024, as amended by DOT-OST-2022-0089, 89 FR 65536, Aug. 12, 2024]_
+
+---
+> Reproduced from the U.S. eCFR (https://www.ecfr.gov/api/versioner/v1/full/2026-07-01/title-14.xml?part=260) as retrieved 2026-07-17. U.S. Government work — public domain.

@@ -31,3 +31,6 @@ topic: One-page Passenger Rights Summary
 (d) Definition. For the purposes of this section, the term covered air carrier means an air carrier or a foreign air carrier as those terms are defined by 49 U.S.C. 40102.
 
 _[91 FR 21957, Apr. 24, 2026]_
+
+---
+> Reproduced from the U.S. eCFR (https://www.ecfr.gov/api/versioner/v1/full/2026-07-01/title-14.xml?part=259) as retrieved 2026-07-17. U.S. Government work — public domain.

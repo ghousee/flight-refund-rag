@@ -64,6 +64,27 @@ def _base_meta(entry: dict) -> dict:
     return meta
 
 
+def _provenance_footer(entry: dict) -> str:
+    """Reproduction/provenance note appended to government regulation notes.
+
+    Satisfies the Reproduction of Federal Law Order's "not an official version"
+    requirement for Canadian regs, and records the public-domain status of US
+    eCFR text. Airline notes get no footer (they are gitignored, not published).
+    """
+    if entry["category"] != "regulation":
+        return ""
+    url, date = entry["url"], entry["retrieved_date"]
+    if entry["jurisdiction"] == "Canada":
+        return (
+            f"\n\n---\n> Reproduced from the Justice Laws website ({url}) as "
+            f"retrieved {date}. This is **not an official version**."
+        )
+    return (
+        f"\n\n---\n> Reproduced from the U.S. eCFR ({url}) as retrieved {date}. "
+        f"U.S. Government work — public domain."
+    )
+
+
 def _write_note(out_dir: Path, slug: str, meta: dict, body: str) -> Path:
     out_dir.mkdir(parents=True, exist_ok=True)
     post = frontmatter.Post(body.strip() + "\n", **meta)
@@ -86,7 +107,7 @@ def parse_pdf(entry: dict, out_dir: Path) -> list[Path]:
 
     meta = _base_meta(entry)
     meta.setdefault("topic", entry["doc_type"])
-    body = f"# {entry['title']}\n\n{text}"
+    body = f"# {entry['title']}\n\n{text}" + _provenance_footer(entry)
     slug = _slugify(Path(entry["filename"]).stem)
     return [_write_note(out_dir, slug, meta, body)]
 
@@ -123,7 +144,7 @@ def parse_ecfr_xml(entry: dict, out_dir: Path) -> list[Path]:
         meta = _base_meta(entry)
         meta["citation"] = f"14 CFR {number}"
         meta["topic"] = topic
-        body = f"# {head}\n\n" + "\n\n".join(paras)
+        body = f"# {head}\n\n" + "\n\n".join(paras) + _provenance_footer(entry)
         slug = _slugify(f"14-cfr-{number.replace('.', '-')}-{topic}")
         written.append(_write_note(out_dir, slug, meta, body))
 

@@ -56,3 +56,6 @@ topic: Refunding fare for flights cancelled or significantly delayed or changed 
 (e) Carriers' obligation to transfer funds to ticket agents. In situations where a ticket agent is responsible for providing the refund to the consumer pursuant to 14 CFR 399.80(l) and the ticket agent does not possess the funds of the consumer, that carrier that has the funds must promptly transfer the funds to the ticket agent.
 
 _[DOT-OST-2022-0089, 89 FR 65537, Aug. 12, 2024]_
+
+---
+> Reproduced from the U.S. eCFR (https://www.ecfr.gov/api/versioner/v1/full/2026-07-01/title-14.xml?part=260) as retrieved 2026-07-17. U.S. Government work — public domain.

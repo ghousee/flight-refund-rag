@@ -19,3 +19,6 @@ The purpose of this part is to ensure that carriers promptly refund consumers fo
 (c) Airfare including nonrefundable airfare for a flight that is cancelled or significantly changed where the consumer does not accept the significantly changed flight or rebooking on an alternative flight, or accept any voucher, credit, or other compensation offered by the carrier.
 
 _[DOT-OST-2022-0089, 89 FR 65536, Aug. 12, 2024]_
+
+---
+> Reproduced from the U.S. eCFR (https://www.ecfr.gov/api/versioner/v1/full/2026-07-01/title-14.xml?part=260) as retrieved 2026-07-17. U.S. Government work — public domain.

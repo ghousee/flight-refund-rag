@@ -19,3 +19,6 @@ topic: Response to consumer problems
 (d) Social networking sites. Each covered carrier that uses a social networking site (e.g. Facebook, Twitter) and that does not intend for that site to be a vehicle for receipt of written consumer complaints subject to this section shall clearly indicate on the carrier's primary page on that social networking site that it will not reply to consumer complaints on that site and shall direct consumers to the carrier's mailing address and e-mail or website location for filing written complaints.
 
 _[Doc. No. DOT-OST-2010-0140, 76 FR 23165, Apr. 25, 2011]_
+
+---
+> Reproduced from the U.S. eCFR (https://www.ecfr.gov/api/versioner/v1/full/2026-07-01/title-14.xml?part=259) as retrieved 2026-07-17. U.S. Government work — public domain.
