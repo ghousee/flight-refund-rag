@@ -92,25 +92,55 @@ def print_sources(docs: list[Document]) -> None:
             print(f"      {m['source_url']}")
 
 
-def answer(question: str, k: int = 5) -> None:
-    store = get_store()
+def answer_once(question: str, store: PGVector, llm, k: int = 5) -> None:
+    """Answer a single question against an already-loaded store + model."""
     docs = store.similarity_search(question, k=k)
-
-    llm = get_llm()
-    chain = PROMPT | llm
-    response = chain.invoke({"context": format_context(docs), "question": question})
-
-    print(f"\nQ: {question}\n")
-    print(response.content.strip())
+    response = (PROMPT | llm).invoke(
+        {"context": format_context(docs), "question": question}
+    )
+    print(f"\n{response.content.strip()}")
     print_sources(docs)
+
+
+def answer(question: str, k: int = 5) -> None:
+    """One-shot: load everything, answer once (used by the CLI)."""
+    answer_once(question, get_store(), get_llm(), k)
+
+
+def chat(k: int = 5) -> None:
+    """Interactive REPL. Loads the store + model once, then loops on input."""
+    store, llm = get_store(), get_llm()
+    print(
+        "flight-refund-rag - v1-naive chat\n"
+        "Ask a flight-refund question. Answers are grounded in the policy corpus "
+        "and cited.\nType 'exit' or press Ctrl-C to quit.\n"
+    )
+    while True:
+        try:
+            question = input("You: ").strip()
+        except (EOFError, KeyboardInterrupt):
+            print("\nbye")
+            break
+        if not question:
+            continue
+        if question.lower() in {"exit", "quit"}:
+            break
+        answer_once(question, store, llm, k)
+        print()
 
 
 def main() -> None:
     parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument("question", nargs="+", help="the question to answer")
+    parser.add_argument("question", nargs="*", help="the question to answer")
+    parser.add_argument("--chat", action="store_true", help="interactive chat loop")
     parser.add_argument("--k", type=int, default=5, help="chunks to retrieve (default 5)")
     args = parser.parse_args()
-    answer(" ".join(args.question), k=args.k)
+    if args.chat:
+        chat(k=args.k)
+    elif args.question:
+        answer(" ".join(args.question), k=args.k)
+    else:
+        parser.error("provide a question, or use --chat for interactive mode")
 
 
 if __name__ == "__main__":
