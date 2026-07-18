@@ -65,7 +65,7 @@ def build_index(reset: bool = True) -> None:
     store = PGVector(
         embeddings=get_embeddings(),
         collection_name=config.COLLECTION_NAME,
-        connection=config.DATABASE_URL,
+        connection=config.get_engine(),
         use_jsonb=True,
         pre_delete_collection=reset,  # rebuild cleanly on each run by default
     )

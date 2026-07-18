@@ -39,6 +39,18 @@ def _normalize_db_url(url: str) -> str:
 DATABASE_URL = _normalize_db_url(os.getenv("DATABASE_URL", _DEFAULT_DB))
 COLLECTION_NAME = os.getenv("COLLECTION_NAME", "flight_refund")
 
+
+def get_engine():
+    """Shared SQLAlchemy engine with stale-connection resilience.
+
+    ``pool_pre_ping`` tests pooled connections before use and reconnects
+    transparently — required for serverless Postgres (e.g. Neon), which
+    suspends compute after inactivity and kills idle connections.
+    """
+    from sqlalchemy import create_engine
+
+    return create_engine(DATABASE_URL, pool_pre_ping=True)
+
 # --- Embeddings (local sentence-transformers) ---
 EMBEDDING_MODEL = os.getenv("EMBEDDING_MODEL", "BAAI/bge-small-en-v1.5")
 

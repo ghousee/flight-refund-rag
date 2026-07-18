@@ -51,7 +51,7 @@ def get_store() -> PGVector:
     return PGVector(
         embeddings=get_embeddings(),
         collection_name=config.COLLECTION_NAME,
-        connection=config.DATABASE_URL,
+        connection=config.get_engine(),
         use_jsonb=True,
     )
 
