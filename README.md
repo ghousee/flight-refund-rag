@@ -136,11 +136,34 @@ python -m src.ingest.index          # embed + load into pgvector
 python -m src.retrievers.v1_naive "Can I get a refund if my flight was cancelled?"
 ```
 
-## Data & licensing
+## Disclaimer
 
-Source policy PDFs are **not** committed to this repository. `src/ingest/fetch_data.py`
-downloads them from official sources for local, personal, educational use. All
-policies remain the property of their respective airlines and governments.
+- **Educational portfolio project.** Not affiliated with, endorsed by, or
+  sponsored by any airline, government, or regulator.
+- **Not legal advice.** Nothing here is legal advice. For your situation,
+  consult the airline, the relevant regulator, or a qualified professional.
+- **Policies change.** The corpus reflects source documents as retrieved on the
+  dates recorded in each note's `retrieved_date` frontmatter. Rules may have
+  changed since — always verify current rules with the airline or regulator.
+- **AI-generated answers may be wrong.** Responses are produced by a language
+  model over retrieved excerpts and may be inaccurate or incomplete. (The
+  evaluation suite includes refusal tests precisely because of this.)
+- **No redistribution of airline documents.** Airline contracts of carriage are
+  **not** committed to this repo; `src/ingest/fetch_data.py` downloads them
+  locally from official URLs for personal, educational use. Only
+  government-sourced notes, code, and templates are committed.
+
+## License
+
+The **code** in this repository is licensed under the [MIT License](LICENSE).
+
+Government regulatory text under `vault/regulations/` is reproduced under its own terms:
+- **US — 14 CFR Parts 259 & 260** (eCFR): a U.S. Government work, in the **public domain**.
+- **Canada — APPR (SOR/2019-150)** (Justice Laws): reproduced under the
+  **Reproduction of Federal Law Order**. This is **not an official version** —
+  the official version is on the
+  [Justice Laws website](https://laws-lois.justice.gc.ca/eng/regulations/SOR-2019-150/).
+  Text was reproduced as of the `retrieved_date` recorded in each note.
 
 <div align="center">
 <sub>Built as a learning project and portfolio piece.</sub>
