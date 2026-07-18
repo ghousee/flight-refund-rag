@@ -1,0 +1,32 @@
+# flight-refund-rag — Python 3.12
+#
+# Pins are lower bounds chosen for compatibility as of mid-2026. After the
+# first successful `pip install`, run `pip freeze > requirements.lock.txt`
+# to capture an exact, reproducible environment for reviewers.
+
+# --- Orchestration ---
+langchain>=0.3
+langchain-community>=0.3
+langchain-postgres>=0.0.12       # PGVector vector store integration
+langchain-huggingface>=0.1       # HuggingFaceEmbeddings
+langchain-ollama>=0.2            # ChatOllama (default generation, no API key)
+langchain-anthropic>=0.2         # ChatAnthropic (optional upgrade if key set)
+
+# --- Embeddings (local, deterministic) ---
+sentence-transformers>=3.0       # BAAI/bge-small-en-v1.5
+
+# --- Vector store / database ---
+pgvector>=0.3
+psycopg[binary]>=3.2             # psycopg3 — used by langchain-postgres
+
+# --- Ingest ---
+pymupdf>=1.24                    # PDF parsing
+python-frontmatter>=1.1          # YAML frontmatter authoring for the vault
+requests>=2.32                   # fetch_data.py corpus downloads
+
+# --- Config ---
+python-dotenv>=1.0
+
+# --- Evaluation ---
+ragas>=0.2
+pytest>=8.0
