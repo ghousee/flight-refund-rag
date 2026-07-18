@@ -46,9 +46,8 @@ Thumbs.db
 # code are committed. See CLAUDE.md > Legal / content rules.
 vault/airlines/
 
-# ---- Obsidian (keep notes + frontmatter, ignore per-machine workspace state) ----
-vault/.obsidian/workspace*
-vault/.obsidian/cache
+# ---- Obsidian (keep the markdown notes; ignore per-user app state) ----
+vault/.obsidian/
 vault/.trash/
 
 # ---- Test / eval artifacts ----
