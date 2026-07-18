@@ -30,3 +30,6 @@ python-dotenv>=1.0
 # --- Evaluation ---
 ragas>=0.2
 pytest>=8.0
+
+# --- Demo UI ---
+gradio>=4.44
