@@ -54,6 +54,9 @@ def get_engine():
 # --- Embeddings (local sentence-transformers) ---
 EMBEDDING_MODEL = os.getenv("EMBEDDING_MODEL", "BAAI/bge-small-en-v1.5")
 
+# --- Cross-encoder reranker (v3) ---
+RERANKER_MODEL = os.getenv("RERANKER_MODEL", "BAAI/bge-reranker-v2-m3")
+
 # --- Chunking (v1-naive: fixed size) ---
 CHUNK_SIZE = int(os.getenv("CHUNK_SIZE", "1000"))
 CHUNK_OVERLAP = int(os.getenv("CHUNK_OVERLAP", "150"))

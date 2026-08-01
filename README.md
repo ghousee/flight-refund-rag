@@ -89,19 +89,19 @@ Each version is a git tag. Evaluation compares them on the same golden set.
 
 | Retriever | recall@5 | MRR | hit-rate | latency/query |
 |-----------|:--------:|:---:|:--------:|:-------------:|
-| `v1-naive` (vector)              | **0.67** | **0.65** | **0.80** | 0.08s |
+| `v1-naive` (vector)              | 0.67 | 0.65 | 0.80 | **0.08s** |
 | `v2-hybrid` (BM25 + vector, RRF) | 0.60 | 0.61 | 0.70 | 0.09s |
-| `v3-reranked` | _in progress_ | | | |
+| `v3-reranked` (vector-20 → cross-encoder-5) | **0.69** | **0.83** | **0.90** | 7.95s |
 | `v4-metadata` | _in progress_ | | | |
 
 **recall@5 by question category** (n=5 each):
 
-| Category | `v1-naive` | `v2-hybrid` | Notes |
-|----------|:----------:|:-----------:|-------|
-| airline-specific    | 1.00 | 1.00 | Vector nails clean-vocabulary lookups |
-| simple-lookup       | 0.70 | 0.50 | Hybrid *hurts* — lexical fusion adds noise |
-| casual-vs-legalese  | 0.50 | 0.50 | Casual wording ≠ legalese; a semantic gap |
-| multi-hop           | 0.47 | 0.40 | **Hardest** — needs 2+ notes in the top 5 |
+| Category | `v1-naive` | `v2-hybrid` | `v3-reranked` |
+|----------|:----------:|:-----------:|:-------------:|
+| airline-specific    | 1.00 | 1.00 | 1.00 |
+| simple-lookup       | 0.70 | 0.50 | 0.70 |
+| casual-vs-legalese  | 0.50 | 0.50 | 0.50 |
+| multi-hop           | 0.47 | 0.40 | **0.57** |
 
 ### Findings so far
 
@@ -115,17 +115,21 @@ Each version is a git tag. Evaluation compares them on the same golden set.
 
 2. **Hybrid made retrieval *worse* here — and sample size mattered.** At n=9,
    `v2-hybrid` looked like a tie with `v1`; at n=20 it's clearly behind
-   (recall@5 0.67 → 0.60, hit-rate 0.80 → 0.70). BM25's lexical signal added
-   ranking noise to already-strong embeddings — worst on `simple-lookup`
-   (0.70 → 0.50) — while the real failures are *semantic* (casual wording vs.
-   legalese), which lexical matching can't bridge. Lesson: measure per corpus,
-   and beware conclusions drawn from a handful of questions.
+   (recall@5 0.67 → 0.60). BM25's lexical signal added ranking noise to
+   already-strong embeddings — worst on `simple-lookup` (0.70 → 0.50) — while the
+   real failures are *semantic* (casual wording vs. legalese), which lexical
+   matching can't bridge. Lesson: measure per corpus, and beware conclusions
+   drawn from a handful of questions.
 
-3. **Multi-hop is the hardest category** (recall ≈ 0.47) — those questions need
-   two+ notes (e.g. a regulation *and* a tariff) both in the top 5. This, plus
-   the casual-vs-legalese semantic gap, is the target for `v3`'s cross-encoder
-   reranking, which re-scores query–chunk *pairs* and can rescue semantic
-   ranking that bi-encoder embeddings miss.
+3. **Reranking is the quality winner — and it costs latency.** `v3`'s
+   cross-encoder lifts **MRR 0.65 → 0.83** and **hit-rate 0.80 → 0.90** by
+   reordering candidates so the right chunk lands in the top 5 — it even rescued
+   a question `v1` missed entirely (a casual "pushed my flight a day later"
+   query, 0.00 → rank #1). But recall@5 only nudged (0.67 → 0.69), because
+   reranking can only reorder the top-20 the vector step *already* retrieved — if
+   the right chunk isn't in that pool, it stays lost. The price: **~0.08s → ~8s
+   per query** (~100× on CPU). Precision buys latency — a real production
+   trade-off, and the argument for a GPU or a lighter reranker if latency matters.
 
 _Reproduce:_ `python -m eval.retrieval_metrics --retriever v1-naive` (or `v2-hybrid`).
 

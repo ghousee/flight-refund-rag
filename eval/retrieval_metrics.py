@@ -128,8 +128,19 @@ def v2_retriever_fn():
     return get_hybrid_retriever()
 
 
+def v3_retriever_fn():
+    """v3-reranked: vector retrieve-20 -> cross-encoder rerank-5."""
+    from src.retrievers.v3_reranked import get_reranking_retriever
+
+    return get_reranking_retriever()
+
+
 # Registry so later versions plug in with no harness changes.
-RETRIEVERS = {"v1-naive": v1_retriever_fn, "v2-hybrid": v2_retriever_fn}
+RETRIEVERS = {
+    "v1-naive": v1_retriever_fn,
+    "v2-hybrid": v2_retriever_fn,
+    "v3-reranked": v3_retriever_fn,
+}
 
 
 def main() -> None:
