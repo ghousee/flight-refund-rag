@@ -156,6 +156,23 @@ failures, explained below.
    isn't a guarantee with a 3B model — another data point for the generator-axis
    experiment.
 
+### Takeaways
+
+- **Retrieval was rarely the bottleneck on this corpus.** Plain vector search
+  (`v1`) already hit recall@5 0.67; the larger error sources were *generation*
+  (a 3B model contradicting its own citation) and *filter judgment* (`v4`
+  over-filtering). On a small, semantically clean corpus, `bge` embeddings are
+  hard to beat with lexical tricks.
+- **Two of four "upgrades" made things worse** — and being able to explain *why*
+  (hybrid adds lexical noise; self-query over-filters) is the point. Retrieval
+  techniques are corpus-dependent, not universally better.
+- **The real skill is the trade-off calls:** reranking buys accuracy for ~100×
+  latency; metadata filtering helps only when the query is genuinely scoped;
+  hybrid helps only when failures are lexical. Measurement made each call explicit.
+- **Next:** isolate generation from retrieval by swapping `llama3.2:3b` for a
+  frontier model on the best retriever — the hypothesis is that most remaining
+  error is *synthesis*, not *search*.
+
 _Reproduce:_ `python -m eval.retrieval_metrics --retriever v1-naive` (swap in
 `v2-hybrid`, `v3-reranked`, `v4-metadata`) · refusal: `python -m eval.refusal_test`
 · 3B filter reliability: `python -m src.retrievers.v4_metadata --report`.
@@ -170,49 +187,71 @@ _Reproduce:_ `python -m eval.retrieval_metrics --retriever v1-naive` (swap in
 | Generation | **Ollama** (`llama3.2:3b`), optional **Claude** | Runs offline by default |
 | PDF parsing | **PyMuPDF** | Fast, layout-aware text extraction |
 | Corpus format | **Obsidian vault** (markdown + YAML) | Human-inspectable, git-diffable, metadata-rich |
-| Evaluation | **RAGAS** + custom recall@5 / MRR (via `pytest`) | LLM-judged + retrieval metrics |
+| Evaluation | Custom **recall@5 / MRR** + refusal harness (RAGAS planned) | Retriever-agnostic, reproducible |
 | Infra | **Docker Compose** | One command, reproducible local stack |
 
 ## Project structure
 
 ```
 flight-refund-rag/
-├── vault/                 # Obsidian vault — policy notes w/ YAML frontmatter (committed)
-├── data/raw/              # source PDFs — gitignored, reproduced via fetch_data.py
+├── vault/
+│   ├── regulations/           # APPR, US DOT 14 CFR notes (committed)
+│   └── airlines/              # Air Canada, WestJet notes (gitignored, reproduced locally)
+├── data/raw/                  # source PDFs/XML — gitignored, reproduced via fetch_data.py
 ├── src/
+│   ├── config.py              # env-driven config (DATABASE_URL, models, chunking)
 │   ├── ingest/
-│   │   ├── fetch_data.py  # download corpus PDFs from official URLs
-│   │   ├── parse_pdfs.py  # PDF → markdown vault notes with frontmatter
-│   │   └── index.py       # ObsidianLoader → chunk → embed → pgvector
-│   └── retrievers/        # v1..v4 retriever implementations
+│   │   ├── fetch_data.py      # download corpus from official URLs → data/raw/
+│   │   ├── parse_pdfs.py      # PDF/XML → markdown vault notes with frontmatter
+│   │   └── index.py           # ObsidianLoader → chunk → embed → pgvector
+│   └── retrievers/
+│       ├── v1_naive.py        # vector similarity  (+ --chat)
+│       ├── v2_hybrid.py       # BM25 + vector, RRF
+│       ├── v3_reranked.py     # cross-encoder reranking
+│       └── v4_metadata.py     # LLM metadata filtering  (+ --report)
 ├── eval/
-│   └── golden_set.jsonl   # ~50 hand-authored Q&A pairs (incl. ~5 unanswerable)
-├── notebooks/             # exploration
-├── docker-compose.yml     # postgres + pgvector, ollama
+│   ├── golden_set.jsonl       # hand-authored Q&A (25; 20 answerable + 5 unanswerable)
+│   ├── retrieval_metrics.py   # recall@5 + MRR, retriever-agnostic
+│   └── refusal_test.py        # hallucination-refusal rate on unanswerable Qs
+├── app.py                     # Gradio web chat UI
+├── docker-compose.yml         # postgres + pgvector, ollama
 ├── requirements.txt
-└── .env.example           # config template (no secrets)
+└── .env.example               # config template (no secrets)
 ```
 
 ## Quickstart
 
-> [!WARNING]
-> 🚧 Under active construction — commands below are being wired up as the
-> ingest pipeline and `v1-naive` retriever land. This section will be verified
-> end-to-end before the first release tag.
+Requires **Docker** and **Python 3.12**. Runs with **zero API keys** — Postgres,
+pgvector, and the LLM (Ollama) all run locally.
 
 ```bash
+# 0. Python env
+python -m venv .venv && source .venv/bin/activate   # Windows: .venv\Scripts\activate
+pip install -r requirements.txt
+
 # 1. Start local infrastructure (Postgres + pgvector, Ollama)
 docker compose up -d
 docker compose exec ollama ollama pull llama3.2:3b   # one-time, ~2GB
 
 # 2. Build the corpus and index it
-python -m src.ingest.fetch_data     # download policy PDFs → data/raw/
-python -m src.ingest.parse_pdfs     # PDF → vault/ markdown notes
-python -m src.ingest.index          # embed + load into pgvector
+python -m src.ingest.fetch_data      # download official docs → data/raw/ (gitignored)
+python -m src.ingest.parse_pdfs      # PDF/XML → vault/ markdown notes
+python -m src.ingest.index           # chunk → embed → pgvector
 
-# 3. Ask a question (v1-naive)
+# 3. Ask a question — one-shot, interactive chat, or the web UI
 python -m src.retrievers.v1_naive "Can I get a refund if my flight was cancelled?"
+python -m src.retrievers.v1_naive --chat
+python app.py                        # Gradio UI at http://localhost:7860
+
+# 4. Reproduce the evaluation
+python -m eval.retrieval_metrics --retriever v1-naive   # or v2-hybrid / v3-reranked / v4-metadata
+python -m eval.refusal_test
 ```
+
+> [!TIP]
+> Point at a hosted Postgres (e.g. [Neon](https://neon.tech)) by setting
+> `DATABASE_URL` in a local `.env` — the code normalizes the driver and adds
+> connection-pool pre-ping for serverless databases. Local Docker stays the default.
 
 ## Disclaimer
 
