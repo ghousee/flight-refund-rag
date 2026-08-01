@@ -80,7 +80,52 @@ Each version is a git tag. Evaluation compares them on the same golden set.
 
 ### Results
 
-_Coming soon — recall@5, MRR, and RAGAS faithfulness/answer-relevancy per version._
+> [!NOTE]
+> **Preliminary — golden set is n=9 answerable questions (growing toward ~50).**
+> Treat these as directional, not statistically settled. RAGAS answer-quality
+> metrics and the generator comparison are in progress.
+
+**Retrieval quality** (answerable questions only; local Docker, CPU):
+
+| Retriever | recall@5 | MRR | hit-rate | latency/query |
+|-----------|:--------:|:---:|:--------:|:-------------:|
+| `v1-naive` (vector)              | **0.61** | **0.72** | 0.78 | 0.10s |
+| `v2-hybrid` (BM25 + vector, RRF) | 0.61 | 0.67 | 0.78 | 0.08s |
+| `v3-reranked` | _in progress_ | | | |
+| `v4-metadata` | _in progress_ | | | |
+
+**recall@5 by question category:**
+
+| Category | `v1-naive` | `v2-hybrid` | Notes |
+|----------|:----------:|:-----------:|-------|
+| airline-specific    | 1.00 | 1.00 | Vector nails clean-vocabulary lookups |
+| multi-hop           | 0.75 | 0.75 | Usually finds one of two needed notes |
+| simple-lookup       | 0.25 | 0.25 | Definitions vs. operative-rule confusion |
+| casual-vs-legalese  | 0.25 | 0.25 | **Hardest** — casual wording ≠ legalese |
+
+### Findings so far
+
+1. **Right retrieval, wrong reasoning (the headline).** `v1` retrieves the
+   correct source (e.g. 14 CFR §260.6, which *guarantees* a cash refund for a
+   cancelled flight) but the 3B model sometimes **contradicts its own citation**
+   ("you cannot get a cash refund"). Failure localizes to *generation*, not
+   retrieval — which is why the next experiment holds the retriever constant and
+   swaps the generator (llama3.2:3b → Claude) to measure how much of the error
+   budget is small-model synthesis.
+
+2. **Hybrid ≠ automatic win.** `v2-hybrid` (BM25 + vector via RRF) did **not**
+   beat naive vector search on this corpus — same recall@5, slightly lower MRR.
+   The reason is diagnostic: the failures are *semantic* (casual wording vs.
+   legalese), which BM25's lexical matching can't bridge, while on queries the
+   embeddings already handle well, lexical fusion mostly added ranking noise. On
+   a corpus with distinctive keywords this could flip — the point is to *measure*
+   per corpus, not assume hybrid is better.
+
+3. **Casual-vs-legalese is the hardest category** and the clearest target for
+   `v3`'s cross-encoder reranking (which re-scores query–chunk *pairs* and can
+   rescue semantic ranking that bi-encoder embeddings miss).
+
+_Reproduce:_ `python -m eval.retrieval_metrics --retriever v1-naive` (or `v2-hybrid`).
 
 ## Technologies
 
