@@ -81,27 +81,27 @@ Each version is a git tag. Evaluation compares them on the same golden set.
 ### Results
 
 > [!NOTE]
-> **Preliminary — golden set is n=9 answerable questions (growing toward ~50).**
-> Treat these as directional, not statistically settled. RAGAS answer-quality
-> metrics and the generator comparison are in progress.
+> **Preliminary — golden set is n=20 answerable questions (+5 unanswerable),
+> growing toward ~50.** Treat as directional. RAGAS answer-quality metrics and
+> the generator comparison are in progress.
 
-**Retrieval quality** (answerable questions only; local Docker, CPU):
+**Retrieval quality** (20 answerable questions; local Docker, CPU):
 
 | Retriever | recall@5 | MRR | hit-rate | latency/query |
 |-----------|:--------:|:---:|:--------:|:-------------:|
-| `v1-naive` (vector)              | **0.61** | **0.72** | 0.78 | 0.10s |
-| `v2-hybrid` (BM25 + vector, RRF) | 0.61 | 0.67 | 0.78 | 0.08s |
+| `v1-naive` (vector)              | **0.67** | **0.65** | **0.80** | 0.08s |
+| `v2-hybrid` (BM25 + vector, RRF) | 0.60 | 0.61 | 0.70 | 0.09s |
 | `v3-reranked` | _in progress_ | | | |
 | `v4-metadata` | _in progress_ | | | |
 
-**recall@5 by question category:**
+**recall@5 by question category** (n=5 each):
 
 | Category | `v1-naive` | `v2-hybrid` | Notes |
 |----------|:----------:|:-----------:|-------|
 | airline-specific    | 1.00 | 1.00 | Vector nails clean-vocabulary lookups |
-| multi-hop           | 0.75 | 0.75 | Usually finds one of two needed notes |
-| simple-lookup       | 0.25 | 0.25 | Definitions vs. operative-rule confusion |
-| casual-vs-legalese  | 0.25 | 0.25 | **Hardest** — casual wording ≠ legalese |
+| simple-lookup       | 0.70 | 0.50 | Hybrid *hurts* — lexical fusion adds noise |
+| casual-vs-legalese  | 0.50 | 0.50 | Casual wording ≠ legalese; a semantic gap |
+| multi-hop           | 0.47 | 0.40 | **Hardest** — needs 2+ notes in the top 5 |
 
 ### Findings so far
 
@@ -113,17 +113,19 @@ Each version is a git tag. Evaluation compares them on the same golden set.
    swaps the generator (llama3.2:3b → Claude) to measure how much of the error
    budget is small-model synthesis.
 
-2. **Hybrid ≠ automatic win.** `v2-hybrid` (BM25 + vector via RRF) did **not**
-   beat naive vector search on this corpus — same recall@5, slightly lower MRR.
-   The reason is diagnostic: the failures are *semantic* (casual wording vs.
-   legalese), which BM25's lexical matching can't bridge, while on queries the
-   embeddings already handle well, lexical fusion mostly added ranking noise. On
-   a corpus with distinctive keywords this could flip — the point is to *measure*
-   per corpus, not assume hybrid is better.
+2. **Hybrid made retrieval *worse* here — and sample size mattered.** At n=9,
+   `v2-hybrid` looked like a tie with `v1`; at n=20 it's clearly behind
+   (recall@5 0.67 → 0.60, hit-rate 0.80 → 0.70). BM25's lexical signal added
+   ranking noise to already-strong embeddings — worst on `simple-lookup`
+   (0.70 → 0.50) — while the real failures are *semantic* (casual wording vs.
+   legalese), which lexical matching can't bridge. Lesson: measure per corpus,
+   and beware conclusions drawn from a handful of questions.
 
-3. **Casual-vs-legalese is the hardest category** and the clearest target for
-   `v3`'s cross-encoder reranking (which re-scores query–chunk *pairs* and can
-   rescue semantic ranking that bi-encoder embeddings miss).
+3. **Multi-hop is the hardest category** (recall ≈ 0.47) — those questions need
+   two+ notes (e.g. a regulation *and* a tariff) both in the top 5. This, plus
+   the casual-vs-legalese semantic gap, is the target for `v3`'s cross-encoder
+   reranking, which re-scores query–chunk *pairs* and can rescue semantic
+   ranking that bi-encoder embeddings miss.
 
 _Reproduce:_ `python -m eval.retrieval_metrics --retriever v1-naive` (or `v2-hybrid`).
 
