@@ -92,16 +92,20 @@ Each version is a git tag. Evaluation compares them on the same golden set.
 | `v1-naive` (vector)              | 0.67 | 0.65 | 0.80 | **0.08s** |
 | `v2-hybrid` (BM25 + vector, RRF) | 0.60 | 0.61 | 0.70 | 0.09s |
 | `v3-reranked` (vector-20 → cross-encoder-5) | **0.69** | **0.83** | **0.90** | 7.95s |
-| `v4-metadata` | _in progress_ | | | |
+| `v4-metadata` (LLM filter → filtered vector) | 0.43 | 0.42 | 0.50 | 1.06s |
+
+**Bottom line:** `v3-reranked` wins on quality (at ~100× the latency); `v1-naive`
+is the best speed/quality trade-off; `v2` and `v4` each *hurt* — instructive
+failures, explained below.
 
 **recall@5 by question category** (n=5 each):
 
-| Category | `v1-naive` | `v2-hybrid` | `v3-reranked` |
-|----------|:----------:|:-----------:|:-------------:|
-| airline-specific    | 1.00 | 1.00 | 1.00 |
-| simple-lookup       | 0.70 | 0.50 | 0.70 |
-| casual-vs-legalese  | 0.50 | 0.50 | 0.50 |
-| multi-hop           | 0.47 | 0.40 | **0.57** |
+| Category | `v1-naive` | `v2-hybrid` | `v3-reranked` | `v4-metadata` |
+|----------|:----------:|:-----------:|:-------------:|:-------------:|
+| airline-specific    | 1.00 | 1.00 | 1.00 | 1.00 |
+| simple-lookup       | 0.70 | 0.50 | 0.70 | 0.40 |
+| casual-vs-legalese  | 0.50 | 0.50 | 0.50 | **0.00** |
+| multi-hop           | 0.47 | 0.40 | **0.57** | 0.30 |
 
 ### Findings so far
 
@@ -130,6 +134,19 @@ Each version is a git tag. Evaluation compares them on the same golden set.
    the right chunk isn't in that pool, it stays lost. The price: **~0.08s → ~8s
    per query** (~100× on CPU). Precision buys latency — a real production
    trade-off, and the argument for a GPU or a lighter reranker if latency matters.
+
+4. **Metadata self-query backfired — the 3B model *over-filters*.** `v4` asks the
+   local model to extract a metadata filter (e.g. `airline = WestJet`) before
+   searching. The model's *format* was reliable — **95%** valid JSON, **100%**
+   correct airline when one was actually named — but it applied airline filters
+   to questions that shouldn't have them (e.g. *"the airline pushed my flight a
+   day later"* → `airline = Air Canada`), which then **excluded the US DOT
+   regulation notes that held the answer.** Result: airline-specific stayed
+   perfect (1.00) but everything else cratered — casual-vs-legalese went to
+   **0.00** and overall recall@5 fell to **0.43**, the worst of the four. The
+   lesson isn't "3B models can't do structured output" — it's that self-query
+   needs judgment about *when* to filter, not just *how*, and a small model
+   guesses a filter wherever a phrase like "the airline" appears.
 
 _Reproduce:_ `python -m eval.retrieval_metrics --retriever v1-naive` (or `v2-hybrid`).
 

@@ -135,11 +135,19 @@ def v3_retriever_fn():
     return get_reranking_retriever()
 
 
+def v4_retriever_fn():
+    """v4-metadata: LLM-extracted metadata filter -> filtered vector search."""
+    from src.retrievers.v4_metadata import get_metadata_retriever
+
+    return get_metadata_retriever()
+
+
 # Registry so later versions plug in with no harness changes.
 RETRIEVERS = {
     "v1-naive": v1_retriever_fn,
     "v2-hybrid": v2_retriever_fn,
     "v3-reranked": v3_retriever_fn,
+    "v4-metadata": v4_retriever_fn,
 }
 
 
