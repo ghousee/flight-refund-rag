@@ -5,7 +5,9 @@
 # to capture an exact, reproducible environment for reviewers.
 
 # --- Orchestration ---
-langchain>=0.3
+langchain>=1.0
+langchain-classic>=1.0           # EnsembleRetriever (moved here in langchain 1.x)
+rank-bm25>=0.2.2                  # BM25 lexical retriever for v2-hybrid
 langchain-community>=0.3
 langchain-postgres>=0.0.12       # PGVector vector store integration
 langchain-huggingface>=0.1       # HuggingFaceEmbeddings

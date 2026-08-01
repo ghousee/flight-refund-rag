@@ -121,8 +121,15 @@ def v1_retriever_fn():
     return lambda question, k: store.similarity_search(question, k=k)
 
 
+def v2_retriever_fn():
+    """v2-hybrid: BM25 + vector fused with RRF."""
+    from src.retrievers.v2_hybrid import get_hybrid_retriever
+
+    return get_hybrid_retriever()
+
+
 # Registry so later versions plug in with no harness changes.
-RETRIEVERS = {"v1-naive": v1_retriever_fn}
+RETRIEVERS = {"v1-naive": v1_retriever_fn, "v2-hybrid": v2_retriever_fn}
 
 
 def main() -> None:
