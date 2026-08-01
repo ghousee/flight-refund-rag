@@ -148,7 +148,17 @@ failures, explained below.
    needs judgment about *when* to filter, not just *how*, and a small model
    guesses a filter wherever a phrase like "the airline" appears.
 
-_Reproduce:_ `python -m eval.retrieval_metrics --retriever v1-naive` (or `v2-hybrid`).
+5. **Refusal works — mostly.** On the 5 "unanswerable" questions (deliberately
+   outside the corpus), the grounded prompt made `llama3.2:3b` decline **4/5
+   (80%)** with "I don't know based on the available policies." The one miss
+   answered a credit-card-insurance question with a bare "No." — an *ungrounded*
+   overreach. So the refusal instruction meaningfully curbs hallucination but
+   isn't a guarantee with a 3B model — another data point for the generator-axis
+   experiment.
+
+_Reproduce:_ `python -m eval.retrieval_metrics --retriever v1-naive` (swap in
+`v2-hybrid`, `v3-reranked`, `v4-metadata`) · refusal: `python -m eval.refusal_test`
+· 3B filter reliability: `python -m src.retrievers.v4_metadata --report`.
 
 ## Technologies
 
