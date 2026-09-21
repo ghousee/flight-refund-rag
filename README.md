@@ -82,8 +82,8 @@ Each version is a git tag. Evaluation compares them on the same golden set.
 
 > [!NOTE]
 > **Preliminary — golden set is n=20 answerable questions (+5 unanswerable),
-> growing toward ~50.** Treat as directional. RAGAS answer-quality metrics and
-> the generator comparison are in progress.
+> growing toward ~50.** Treat as directional. The generator comparison
+> (`llama3.2:3b` vs. Claude on the same retriever) is still in progress.
 
 **Retrieval quality** (20 answerable questions; local Docker, CPU):
 
@@ -98,6 +98,25 @@ Each version is a git tag. Evaluation compares them on the same golden set.
 is the best speed/quality trade-off; `v2` and `v4` each *hurt* — instructive
 failures, explained below.
 
+**Answer quality** (`v1-naive`, RAGAS faithfulness, local `llama3.2:3b` as both
+generator and judge; 20 answerable questions, all scored, no judge failures):
+
+| Metric | `v1-naive` | What it measures |
+|--------|:----------:|------------------|
+| RAGAS faithfulness | **0.684** | Share of the answer's claims actually supported by the retrieved chunks |
+| Refusal rate (5 unanswerable) | **0.80** | Declined rather than invented an answer |
+| Generation latency | 16.2s/question | Local 3B on CPU (retrieval itself is 0.08s) |
+
+**Faithfulness by category** — the gap is the story: the model is most faithful
+exactly where retrieval was easiest, and least faithful on casual wording.
+
+| Category | faithfulness | recall@5 |
+|----------|:------------:|:--------:|
+| airline-specific    | **0.90** | 1.00 |
+| simple-lookup       | 0.77 | 0.70 |
+| multi-hop           | 0.61 | 0.47 |
+| casual-vs-legalese  | **0.45** | 0.50 |
+
 **recall@5 by question category** (n=5 each):
 
 | Category | `v1-naive` | `v2-hybrid` | `v3-reranked` | `v4-metadata` |
@@ -109,13 +128,24 @@ failures, explained below.
 
 ### Findings so far
 
-1. **Right retrieval, wrong reasoning (the headline).** `v1` retrieves the
-   correct source (e.g. 14 CFR §260.6, which *guarantees* a cash refund for a
-   cancelled flight) but the 3B model sometimes **contradicts its own citation**
-   ("you cannot get a cash refund"). Failure localizes to *generation*, not
-   retrieval — which is why the next experiment holds the retriever constant and
-   swaps the generator (llama3.2:3b → Claude) to measure how much of the error
-   budget is small-model synthesis.
+1. **Right retrieval, wrong reasoning (the headline) — now measured.** The
+   clearest case in the golden set: *"The Wi-Fi I paid for didn't work the entire
+   flight. Can I get that money back?"* Retrieval **worked** — 14 CFR §260.4, the
+   rule on refunding fees for ancillary services that were paid for but not
+   provided, came back at rank 2, and the chunk names Wi-Fi as its own worked
+   example. The correct answer is *yes*. The model answered **"No, you cannot get
+   that money back."** It had misread the regulation's *timing* clause — that the
+   refund obligation "begins when the information about the unavailability of the
+   service is known by the carrier" — as a **precondition that hadn't been met**,
+   and reasoned that since nothing showed the airline knew the Wi-Fi was down, no
+   refund was owed. A scheduling rule about *when* the duty starts became, in the
+   3B model's hands, a test for *whether* the duty exists. RAGAS scored it 0.25.
+   This is the failure mode no retrieval metric can see: recall@5 and MRR both
+   record a success here, and the user still gets told the opposite of the law.
+   It is also why faithfulness (0.684) sits well below hit-rate (0.80) — and why
+   the next experiment holds the retriever constant and swaps the generator
+   (llama3.2:3b → Claude) to measure how much of the error budget is small-model
+   synthesis rather than search.
 
 2. **Hybrid made retrieval *worse* here — and sample size mattered.** At n=9,
    `v2-hybrid` looked like a tie with `v1`; at n=20 it's clearly behind
@@ -161,8 +191,10 @@ failures, explained below.
 - **Retrieval was rarely the bottleneck on this corpus.** Plain vector search
   (`v1`) already hit recall@5 0.67; the larger error sources were *generation*
   (a 3B model contradicting its own citation) and *filter judgment* (`v4`
-  over-filtering). On a small, semantically clean corpus, `bge` embeddings are
-  hard to beat with lexical tricks.
+  over-filtering). The numbers say it directly: `v1` put the right note in front
+  of the model 80% of the time, but only 68% of the model's claims were faithful
+  to what it was given. On a small, semantically clean corpus, `bge` embeddings
+  are hard to beat with lexical tricks.
 - **Two of four "upgrades" made things worse** — and being able to explain *why*
   (hybrid adds lexical noise; self-query over-filters) is the point. Retrieval
   techniques are corpus-dependent, not universally better.
@@ -174,8 +206,21 @@ failures, explained below.
   error is *synthesis*, not *search*.
 
 _Reproduce:_ `python -m eval.retrieval_metrics --retriever v1-naive` (swap in
-`v2-hybrid`, `v3-reranked`, `v4-metadata`) · refusal: `python -m eval.refusal_test`
+`v2-hybrid`, `v3-reranked`, `v4-metadata`) · answer quality:
+`python -m eval.generation_metrics` · refusal: `python -m eval.refusal_test`
 · 3B filter reliability: `python -m src.retrievers.v4_metadata --report`.
+
+> [!NOTE]
+> **Judging with a 3B model takes a workaround.** RAGAS asks for structured
+> output in prose and parses it with a pydantic parser. `llama3.2:3b` fails that
+> two ways — unconstrained it replies with *Python code that would produce* the
+> JSON, and with `format="json"` it echoes the **schema** back instead of an
+> instance — so the metric raises instead of scoring. `eval/generation_metrics.py`
+> lifts the JSON Schema back out of RAGAS's own prompt and passes it to Ollama as
+> a decoding constraint, so the model can only emit a conforming instance. The
+> judging prompt and the metric are unchanged. Caveat worth stating plainly: a 3B
+> judge is a *noisy* one, and these scores are best read as relative across
+> categories, not as absolute ground truth.
 
 ## Technologies
 
@@ -187,7 +232,7 @@ _Reproduce:_ `python -m eval.retrieval_metrics --retriever v1-naive` (swap in
 | Generation | **Ollama** (`llama3.2:3b`), optional **Claude** | Runs offline by default |
 | PDF parsing | **PyMuPDF** | Fast, layout-aware text extraction |
 | Corpus format | **Obsidian vault** (markdown + YAML) | Human-inspectable, git-diffable, metadata-rich |
-| Evaluation | Custom **recall@5 / MRR** + refusal harness (RAGAS planned) | Retriever-agnostic, reproducible |
+| Evaluation | Custom **recall@5 / MRR** + **RAGAS faithfulness** + refusal harness | Retriever-agnostic, reproducible, no API key |
 | Infra | **Docker Compose** | One command, reproducible local stack |
 
 ## Project structure

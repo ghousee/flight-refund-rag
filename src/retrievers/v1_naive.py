@@ -92,13 +92,21 @@ def print_sources(docs: list[Document]) -> None:
             print(f"      {m['source_url']}")
 
 
-def answer_once(question: str, store: PGVector, llm, k: int = 5) -> None:
-    """Answer a single question against an already-loaded store + model."""
+def generate(
+    question: str, store: PGVector, llm, k: int = 5
+) -> tuple[str, list[Document]]:
+    """Retrieve + answer, returning both so callers can score them."""
     docs = store.similarity_search(question, k=k)
     response = (PROMPT | llm).invoke(
         {"context": format_context(docs), "question": question}
     )
-    print(f"\n{response.content.strip()}")
+    return response.content.strip(), docs
+
+
+def answer_once(question: str, store: PGVector, llm, k: int = 5) -> None:
+    """Answer a single question against an already-loaded store + model."""
+    text, docs = generate(question, store, llm, k)
+    print(f"\n{text}")
     print_sources(docs)
 
 
